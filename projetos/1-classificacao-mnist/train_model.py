@@ -1,6 +1,8 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+import numpy as np
+
 
 # ---------------------------------------------------------------------------
 # Projeto 1 — Classificação MNIST
@@ -17,3 +19,32 @@ from tensorflow.keras import layers
 # ---------------------------------------------------------------------------
 
 # insira seu código aqui
+
+(xTrain, yTrain), (xTest, yTest) = keras.datasets.mnist.load_data()
+
+# convertendo para float32 e normalizando
+xTrain = xTrain.astype("float32") / 255.0
+xTest = xTest.astype("float32") / 255.0
+
+#adicionando grayscale (60000, 28, 28, 1)
+
+xTrain = np.expand_dims(xTrain, axis=-1)
+xTest = np.expand_dims(xTest, axis=-1)
+
+rng = np.random.default_rng(42)
+indices = rng.permutation(len(xTrain))
+
+validationSize = int(len(xTrain) * 0.1)
+
+validationIndices = indices[:validationSize]
+trainIndices = indices[validationSize:]
+
+xVal = xTrain[validationIndices]
+yVal = yTrain[validationIndices]
+
+xTrain = xTrain[trainIndices]
+yTrain = yTrain[trainIndices]
+
+print(xTrain.shape)
+print(xVal.shape)
+print(xTest.shape)

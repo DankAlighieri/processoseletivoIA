@@ -4,6 +4,10 @@ from tensorflow.keras import layers
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization, Activation, Input
+import matplotlib.pyplot as pyplot
+from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping
+
 
 # ---------------------------------------------------------------------------
 # Projeto 1 — Classificação MNIST
@@ -82,3 +86,67 @@ model.add(Dropout(0.4))
 model.add(Dense(10, activation='softmax'))
 
 model.summary()
+
+## Treinando o modelo
+
+adamOptimizer = Adam(learning_rate=0.001)
+
+model.compile( 
+    optimizer=adamOptimizer, 
+    loss='sparse_categorical_crossentropy', 
+    metrics=['accuracy'] 
+)
+earlyStopping = EarlyStopping(
+    monitor="val_loss",       # acompanha a perda de validação
+    mode="min",               # valores menores são melhores
+    patience=3,               # tolera 3 épocas sem melhora
+    min_delta=0.001,          # melhora mínima considerada
+    restore_best_weights=True,
+    verbose=1,
+)
+
+# treinamento de 10 epocas
+history = model.fit( 
+    x=xTrain, 
+    y=yTrain, 
+    validation_data=(xVal,yVal), 
+    epochs=10, 
+    batch_size=16, 
+    shuffle=False,
+    callbacks=[earlyStopping],
+)
+
+# Plotando o histórico de treino
+
+# Histórico de acurácia
+pyplot.plot(history.history['accuracy'])
+pyplot.plot(history.history['val_accuracy'])
+pyplot.title('Acurácia do modelo no treino e validação')
+pyplot.ylabel('Acurácia')
+pyplot.xlabel('Época')
+pyplot.legend(['Treino', 'Validação'], loc='upper left')
+pyplot.show()
+
+# Histórico da função de perda
+pyplot.plot(history.history['loss'])
+pyplot.plot(history.history['val_loss'])
+pyplot.title('Perda do modelo no treino e validação')
+pyplot.ylabel('Perda')
+pyplot.xlabel('Época')
+pyplot.legend(['Treino', 'Validação'], loc='upper left')
+pyplot.show()
+
+# Avaliacao
+score = model.evaluate(xTest, yTest)
+print( '\nPerda:{:.3f}\nAcurácia:{}'.format( score[0], score[1] ) )
+
+# Imprimindo uma imagem de exemplo
+image_index = 2222
+pyplot.imshow(xTest[image_index].reshape(28, 28),cmap='Greys')
+
+# Predizendo o dígito dessa imagem
+pred = model.predict( xTest[image_index].reshape(1, 28, 28, 1) )
+print( '\nO valor predito é:', pred.argmax() )
+
+model.save("model.h5")
+print("Modelo salvo em model.h5")

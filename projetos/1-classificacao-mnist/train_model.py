@@ -1,8 +1,9 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-import numpy as np
-
+from sklearn.model_selection import train_test_split
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization, Activation, Input
 
 # ---------------------------------------------------------------------------
 # Projeto 1 — Classificação MNIST
@@ -18,33 +19,66 @@ import numpy as np
 #   7. Salvar o modelo treinado como "model.h5"
 # ---------------------------------------------------------------------------
 
-# insira seu código aqui
-
 (xTrain, yTrain), (xTest, yTest) = keras.datasets.mnist.load_data()
 
-# convertendo para float32 e normalizando
-xTrain = xTrain.astype("float32") / 255.0
-xTest = xTest.astype("float32") / 255.0
+# dividindo em treino, validação e teste
+xTrain, xVal, yTrain, yVal = train_test_split(xTrain, yTrain, stratify=yTrain, test_size = 0.25, random_state=42)
 
-#adicionando grayscale (60000, 28, 28, 1)
+# Arrays de 4 dimensões (batch, altura, largura, canais)
+xTrain = xTrain.reshape(xTrain.shape[0], 28, 28, 1)
+xVal = xVal.reshape(xVal.shape[0], 28, 28, 1)
+xTest = xTest.reshape(xTest.shape[0], 28, 28, 1)
 
-xTrain = np.expand_dims(xTrain, axis=-1)
-xTest = np.expand_dims(xTest, axis=-1)
+# interface de entraadas
+inputShape = (28,28,1)
 
-rng = np.random.default_rng(42)
-indices = rng.permutation(len(xTrain))
+# Normalizando os dados do modelo (0-1)
+xTrain = xTrain.astype('float32') / 255.0
+xVal = xVal.astype('float32') / 255.0
+xTest = xTest.astype('float32') / 255.0
 
-validationSize = int(len(xTrain) * 0.1)
+# Construindo a CNN
 
-validationIndices = indices[:validationSize]
-trainIndices = indices[validationSize:]
+model = Sequential()
 
-xVal = xTrain[validationIndices]
-yVal = yTrain[validationIndices]
+# primeiro bloco conv2d -> batchnorm -> relu -> maxpooling
+model.add(Input(shape=inputShape))
+model.add(Conv2D(
+    32, # filtros
+    (3, 3), # kernel
+    padding='same',
+    use_bias=False))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(MaxPooling2D((2, 2)))
 
-xTrain = xTrain[trainIndices]
-yTrain = yTrain[trainIndices]
+# segundo bloco conv2d -> batchnorm -> relu -> maxpooling
+model.add(Conv2D(
+    64,
+    (3, 3), 
+    padding='same',
+    use_bias=False))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(MaxPooling2D((2, 2)))
 
-print(xTrain.shape)
-print(xVal.shape)
-print(xTest.shape)
+# terceiro bloco conv2d -> batchnorm -> relu -> maxpooling
+model.add(Conv2D(
+    128, 
+    (3, 3),
+    padding='same',
+    use_bias=False))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(MaxPooling2D((2, 2)))
+
+# blocos de saida
+model.add(Flatten())
+
+model.add(Dense(128, activation='relu'))
+
+model.add(Dropout(0.4))
+
+model.add(Dense(10, activation='softmax'))
+
+model.summary()

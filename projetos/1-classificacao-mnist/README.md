@@ -85,7 +85,7 @@ projetos/1-classificacao-mnist/
 
 ## 📝 Relatório do Candidato
 
-👤 **Nome Completo:**
+👤 **Nome Completo: Guilherme Emetério Santos Lima**
 
 ### 1️⃣ Resumo da Arquitetura do Modelo
 

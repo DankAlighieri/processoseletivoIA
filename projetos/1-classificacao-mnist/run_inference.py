@@ -11,13 +11,18 @@ import tensorflow as tf
 #   3. Imprimir no terminal, para cada amostra: classe predita vs. classe real
 # ---------------------------------------------------------------------------
 
-N_SAMPLES = 5
-
+N_SAMPLES = 10
 
 def main():
     import os
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    interpreter = tf.lite.Interpreter(model_path=os.path.join(script_dir, "model.tflite"))
+
+    # Carregando o modelo tflite de uma forma que nao de problema com o caminho relativo do windows
+    model_path = os.path.join(script_dir, "model.tflite")
+    with open(model_path, "rb") as file:
+        model_content = file.read()
+    
+    interpreter = tf.lite.Interpreter(model_content=model_content)
     interpreter.allocate_tensors()
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()

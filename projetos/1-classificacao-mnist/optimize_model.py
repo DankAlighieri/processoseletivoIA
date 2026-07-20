@@ -1,5 +1,8 @@
 import tensorflow as tf
+import tensorflow.keras as keras
 import os
+from keras.models import load_model
+
 
 # ---------------------------------------------------------------------------
 # Projeto 1 — Otimização do Modelo (MNIST)
@@ -12,4 +15,11 @@ import os
 #   4. Salvar o resultado como "model.tflite"
 # ---------------------------------------------------------------------------
 
-# insira seu código aqui
+model = load_model("model.h5")
+
+# converter tflite dynamic range 
+converter = tf.lite.TFLiteConverter.from_keras_model(model)
+converter.optimizations = [tf.lite.Optimize.DEFAULT]
+tflite_model = converter.convert()
+with open("model.tflite", "wb") as f:
+    f.write(tflite_model)
